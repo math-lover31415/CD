@@ -44,13 +44,13 @@ struct NFA* epsilon_removal(struct NFA* enfa){
             if (!closure_matrix[s][s1]) continue;
             for (struct TransitionNode* current = (enfa->stateList[s1]).transitionListHead;current;current = current->next){
                 if (current->input=='e') continue;
-                // add_transition(outNFA,s,current->target_state,current->input);
+                // addTransitionNFA(outNFA,s,current->target_state,current->input);
                 int t = current->target_state;
                 char c = current->input;
                 for (int t1=0;t1<n;++t1){
                     if (!closure_matrix[t][t1]) continue;
                     //t1 is a state part of epsilon closure of t
-                    add_transition(outNFA,s,t1,c);
+                    addTransitionNFA(outNFA,s,t1,c);
                 }
             }
         }

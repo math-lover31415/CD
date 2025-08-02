@@ -41,7 +41,7 @@ struct NFA* init_NFA(int n, char* inputAlphabet){
     return out;
 }
 
-void add_transition(struct NFA* n, int s, int t, char c){
+void addTransitionNFA(struct NFA* n, int s, int t, char c){
     struct TransitionNode** head = &(n->stateList[s].transitionListHead);
     while (*head){
         if ((*head)->input==c && (*head)->target_state==t){
@@ -58,7 +58,7 @@ void add_transition(struct NFA* n, int s, int t, char c){
     (*head)->next = NULL;
 }
 
-void freeState(struct State s){
+void freeStateNFA(struct State s){
     struct TransitionNode* head = s.transitionListHead;
     while (head){
         struct TransitionNode* next = head->next;
@@ -70,7 +70,7 @@ void freeState(struct State s){
 void freeNFA(struct NFA* n){
     if (!n) return;
     for (int i=0;i<(n->stateNum);++i){
-        freeState(n->stateList[i]);
+        freeStateNFA(n->stateList[i]);
     }
 
     free(n->inputAlphabet);
@@ -119,7 +119,7 @@ void printNFA(struct NFA* nfa){
  *
  * @return Pointer to the initialized NFA structure, or NULL on failure.
  */
-struct NFA* read_nfa() {
+struct NFA* readNFA() {
     // read input
     int n, m, t;
     scanf("%d%d%d", &n, &m, &t);
@@ -166,7 +166,7 @@ struct NFA* read_nfa() {
             freeNFA(nfa);
             return NULL;
         }
-        add_transition(nfa, a, b, c);
+        addTransitionNFA(nfa, a, b, c);
     }
     return nfa;
 }

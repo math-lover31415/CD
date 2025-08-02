@@ -2,7 +2,7 @@
 #include "enfa_functions.c"
 
 int main(){
-    struct NFA* enfa = read_nfa();
+    struct NFA* enfa = readNFA();
     if (!enfa) return 1;
     printNFA(enfa);
     

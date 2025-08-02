@@ -20,7 +20,7 @@ void print_epsilon_closure(struct NFA* nfa,int state){
 }
 
 int main(){
-    struct NFA* nfa = read_nfa();
+    struct NFA* nfa = readNFA();
     if (!nfa) return 1;
     printNFA(nfa);
     
