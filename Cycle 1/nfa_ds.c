@@ -11,6 +11,7 @@ struct TransitionNode {
 struct State {
     int id;
     struct TransitionNode* transitionListHead;
+    bool finalState;
 };
 
 struct NFA {
@@ -36,6 +37,7 @@ struct NFA* init_NFA(int n, char* inputAlphabet){
     for (int i=0;i<n;++i){
         out->stateList[i].id = i;
         out->stateList[i].transitionListHead = NULL;
+        out->stateList[i].finalState = false;
     }
 
     return out;
@@ -106,23 +108,24 @@ void printNFA(struct NFA* nfa){
     }
 }
 
-/**
- * @brief Reads an NFA (Non-deterministic Finite Automaton) definition from standard input.
- * @details
- * The function expects the following input format:
- * - Three integers: n (number of states), m (number of input characters), t (number of transitions).
- * - A string of m input characters.
- * - t transitions, each specified by two integers (source and destination states) and a character (input symbol or 'e' for epsilon).
- *   - Each state is of format qi where 0<=i<n
- * The function performs input validation, allocates memory for input characters, and initializes the NFA structure.
- * If any error occurs (invalid input, memory allocation failure, etc.), it prints an error message and returns NULL.
- *
- * @return Pointer to the initialized NFA structure, or NULL on failure.
- */
+
 struct NFA* readNFA() {
     // read input
-    int n, m, t;
-    scanf("%d%d%d", &n, &m, &t);
+    int n, m, t, f;
+    scanf("%d%d%d%d", &n, &f, &m, &t);
+    if (f<0 || f>n){
+        printf("Invalid number of final states\n");
+        return NULL;
+    }
+    
+    int finalStates[f];
+    for (int i=0;i<f;++i){
+        scanf("%d",finalStates+i);
+        if (finalStates[i]<0 || finalStates[i]>=n){
+            printf("Invalid final state %d\n",finalStates[i]);
+            return NULL;
+        }
+    }
     
     
     char* inputChars = malloc(sizeof(char)*(m+1));
@@ -143,6 +146,10 @@ struct NFA* readNFA() {
         free(inputChars);
         printf("Failed to initialize NFA\n");
         return NULL;
+    }
+
+    for (int i=0;i<f;++i){
+        nfa->stateList[finalStates[i]].finalState = true;
     }
 
     for (int i = 0; i < t; ++i) {
