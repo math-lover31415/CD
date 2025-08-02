@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "dsu.c"
 
 struct DFA {
     int stateNum;
@@ -156,4 +157,60 @@ struct DFA* readDFA() {
     }
 
     return dfa;
+}
+
+struct DFA* dfsMinimization(struct DFA* dfa){
+    int n = dfa->stateNum;
+    int m = strlen(dfa->inputAlphabet);
+    bool grid[n][n];
+    for (int i=0;i<n;++i){
+        for (int j=0;j<n;++j){
+            grid[i][j] = (dfa->finalState[i]!=dfa->finalState[j]);
+        }
+    }
+    bool changedFlag = true;
+    while (changedFlag){
+        changedFlag = false;
+        for (int i=0;i<n;++i){
+            for (int j=0;j<i;++j){
+                if (grid[i][j]) continue;
+                for (int inputIndex=0;inputIndex<m;++inputIndex){
+                    int x = dfa->transitionTable[i][inputIndex];
+                    int y = dfa->transitionTable[j][inputIndex];
+                    if (grid[x][y]){
+                        grid[i][j] = grid[j][i] = true;
+                        changedFlag = true;
+                    }
+                }
+            }
+        }
+    }
+
+    struct DSU* dsu = initDSU(n);
+    for (int i=0;i<n;++i){
+        for (int j=0;j<i;++j){
+            if (!grid[i][j]){
+                mergeDSU(dsu,i,j);
+            }
+        }
+    }
+    int n1 = 0;
+    int mapping[n];
+    for (int i=0;i<n;++i){
+        if (findDSU(dsu,i)==i){
+            mapping[n1] = i;
+            ++n1;
+        }
+    }
+    char * inputAlphabet = malloc(sizeof(char)*m);
+    strcpy(inputAlphabet,dfa->inputAlphabet);
+    struct DFA* out = init_DFA(n1,inputAlphabet);
+    for (int i=0;i<n1;++i){
+        out->finalState[i] = dfa->finalState[mapping[i]];
+        for (int j=0;j<m;++j){
+            out->transitionTable[i][j] = findDSU(dsu,dfa->transitionTable[mapping[i]][j]);
+        }
+    }
+    freeDSU(dsu);
+    return out;
 }
