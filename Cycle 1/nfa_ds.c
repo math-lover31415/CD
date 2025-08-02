@@ -44,6 +44,9 @@ struct NFA* init_NFA(int n, char* inputAlphabet){
 void add_transition(struct NFA* n, int s, int t, char c){
     struct TransitionNode** head = &(n->stateList[s].transitionListHead);
     while (*head){
+        if ((*head)->input==c && (*head)->target_state==t){
+            return ; //avoid duplicates
+        }
         head = &((*head)->next);
     }
     *head = malloc(sizeof(struct TransitionNode));
@@ -130,12 +133,14 @@ struct NFA* read_nfa() {
 
     scanf("%s\n", inputChars);
     if (strlen(inputChars) != m) {
+        free(inputChars);
         printf("Input characters length mismatch\n");
         return NULL;
     }
 
     struct NFA *nfa = init_NFA(n,inputChars);
     if (!nfa) {
+        free(inputChars);
         printf("Failed to initialize NFA\n");
         return NULL;
     }
