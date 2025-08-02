@@ -165,24 +165,3 @@ struct NFA* read_nfa() {
     }
     return nfa;
 }
-
-void dfs_closure(struct NFA* nfa,int state, bool visited[]){
-    if (visited[state]) return;
-    visited[state] = true;
-    for (struct TransitionNode* current = (nfa->stateList[state]).transitionListHead;current;current = current->next){
-        if (current->input=='e'){
-            dfs_closure(nfa,current->target_state,visited);
-        }
-    }
-}
-
-bool* find_epsilon_closure(struct NFA* nfa, int state){
-    int n = nfa->stateNum;
-    int m = strlen(nfa->inputAlphabet);
-    bool* closure = malloc(sizeof(bool)*n);
-    for (int i=0;i<n;++i){
-        closure[i] = false;
-    }
-    dfs_closure(nfa,state,closure);
-    return closure;
-}
