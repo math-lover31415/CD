@@ -90,6 +90,12 @@ void printNFA(struct NFA* nfa){
     }
     printf("epsilon\n");
     for (int i=0;i<n;++i){
+        if (i==0){
+            printf("->");
+        }
+        if (nfa->stateList[i].finalState){
+            printf("*");
+        }
         printf("q%d\t",i);
         struct State s = nfa->stateList[i];
         for (int j=0;j<=m;++j){

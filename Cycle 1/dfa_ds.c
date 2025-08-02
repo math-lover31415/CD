@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 struct DFA {
     int stateNum;
@@ -82,14 +83,21 @@ void addTransitionDFA(struct DFA* dfa, int s, int t, char c){
 
 
 void printDFA(struct DFA* dfa){
-    printf("The transition table is as free(dfa->transitionTable[i]);follows:\n");
+    printf("The transition table is as follows:\n");
     int n = dfa->stateNum;
     int m = strlen(dfa->inputAlphabet);
     printf("\t");
     for (int i=0;i<m;++i){
         printf("%c\t",dfa->inputAlphabet[i]);
     }
+    printf("\n");
     for (int i=0;i<n;++i){
+        if (i==0){
+            printf("->");
+        }
+        if (dfa->finalState[i]){
+            printf("*");
+        }
         printf("q%d\t",i);
         for (int j=0;j<m;++j){
             printf("q%d\t",dfa->transitionTable[i][j]);
