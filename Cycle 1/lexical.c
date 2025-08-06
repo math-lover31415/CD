@@ -11,8 +11,8 @@ typedef enum {
     TOKEN_OPERATOR,
     TOKEN_PUNCTUATOR,
     TOKEN_UNKNOWN,
-    TOKEN_END,
-    TOKEN_DIRECTIVE
+    TOKEN_DIRECTIVE,
+    TOKEN_END
 } TokenType;
 
 const char* TokenTypeNames[] = {
@@ -33,6 +33,7 @@ char keywords[][10] = {"auto", "break", "case", "char", "const", "continue", "de
 
 char buffer[1024] = "";
 int bufferLength = 0;
+bool atNewLine = true;
 
 bool isSubset(char* buffer, char charSet[][10], int len) {
     for (int i=0;i<len;++i){
@@ -94,10 +95,36 @@ TokenType getToken(){
 
     while (true){
         char c = getchar();
+        if (c=='\n'){
+            atNewLine = true;
+        }
+
         if (c==EOF){
             if (bufferLength==0) return TOKEN_END;
             ungetc(c,stdin);
             return identifierParse(buffer);
+        }
+
+        //Handle compiler directives
+        if (atNewLine && c=='#'){
+            if (bufferLength!=0){
+                ungetc(c,stdin);
+                return identifierParse(buffer);
+            }
+
+            buffer[bufferLength++] = c;
+            while (true) {
+                c = getchar();
+                if (c==EOF) {
+                    if (bufferLength==0) return TOKEN_END;
+                    ungetc(c,stdin);
+                    return identifierParse(buffer);
+                }
+                if (c=='\n') break;
+                buffer[bufferLength++] = c;
+            }
+            buffer[bufferLength] = '\0';
+            return TOKEN_DIRECTIVE;
         }
 
         // Handle punctuators
