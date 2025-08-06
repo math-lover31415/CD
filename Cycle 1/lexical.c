@@ -44,16 +44,6 @@ bool isSubset(char* buffer, char charSet[][10], int len) {
     return false;
 }
 
-bool isValidId(char* buffer){
-    int n = strlen(buffer);
-    for (int i=0;i<n;++i){
-        if (!isalnum(buffer[i]) && buffer[i]!='_'){
-            return false;
-        }
-    }
-    return isalpha(buffer[0]);
-}
-
 bool isInteger(char* buffer){
     if (buffer[0]=='0' && buffer[1]=='\0') return true;
 
@@ -82,10 +72,21 @@ bool isOperator(char* buffer){
 }
 
 TokenType identifierParse(char* buffer){
+    int n = strlen(buffer);
+    bool validFlag = false;
+    for (int i=0;i<n;++i){
+        if (!isalnum(buffer[i]) && buffer[i]!='_'){
+            if (i==0) return TOKEN_UNKNOWN;
+            for (int j=i;j<n;++j){
+                ungetc(buffer[i],stdin);
+            }
+            buffer[i] = '\0';
+            validFlag = true;
+        }
+    }
     if (isInteger(buffer)) return TOKEN_INT_CONST;
     if (isKeyword(buffer)) return TOKEN_KEYWORD;
-    if (isValidId(buffer)) return TOKEN_IDENTIFIER;
-    return TOKEN_UNKNOWN;
+    return TOKEN_IDENTIFIER;
 }
 
 TokenType getToken(){
