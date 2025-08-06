@@ -95,7 +95,9 @@ TokenType getToken(){
     while (true){
         char c = getchar();
         if (c==EOF){
-            return TOKEN_END;
+            if (bufferLength==0) return TOKEN_END;
+            ungetc(c,stdin);
+            return identifierParse(buffer);
         }
 
         // Handle punctuators
@@ -127,6 +129,7 @@ TokenType getToken(){
                     if (c==EOF) break;
                     if (c=='\n') commentFlag = false;
                 }
+                continue;
             } else if (n=='*'){
                 while (commentFlag) {
                     c = n;
@@ -134,8 +137,12 @@ TokenType getToken(){
                     if (n==EOF) break;
                     if (c=='*' && n=='/') commentFlag = false;
                 }
+                continue;
             } else {
                 ungetc(n,stdin);
+            }
+            if (n==EOF){
+                return TOKEN_END;
             }
             if (!commentFlag) continue;
         }
@@ -157,7 +164,10 @@ TokenType getToken(){
 
         if (c=='"'){
             while ((c=getchar())!='"'){
-                if (c==EOF) return TOKEN_END;
+                if (c==EOF){
+                    ungetc(c,stdin);
+                    return identifierParse(buffer);
+                }
                 buffer[bufferLength++] = c;
             }
             buffer[bufferLength] = '"';
