@@ -46,11 +46,11 @@ bool isSubset(char* buffer, char charSet[][10], int len) {
 
 bool isInteger(char* buffer){
     if (buffer[0]=='0' && buffer[1]=='\0') return true;
+    if (buffer[0]=='0') return false;
 
     int n = strlen(buffer);
     for (int i=0;i<n;++i){
         if (!isdigit(buffer[i])) return false;
-        if (i==0 && buffer[i]=='0') return false;
     }
     return true;
 }
@@ -77,15 +77,17 @@ TokenType identifierParse(char* buffer){
     for (int i=0;i<n;++i){
         if (!isalnum(buffer[i]) && buffer[i]!='_'){
             if (i==0) return TOKEN_UNKNOWN;
-            for (int j=i;j<n;++j){
-                ungetc(buffer[i],stdin);
+            for (int j=n-1;j>=i;--j){
+                ungetc(buffer[j],stdin);
             }
             buffer[i] = '\0';
             validFlag = true;
+            break;
         }
     }
     if (isInteger(buffer)) return TOKEN_INT_CONST;
     if (isKeyword(buffer)) return TOKEN_KEYWORD;
+    if (isdigit(buffer[0])) return TOKEN_UNKNOWN; //Ensure first digit is alphabet or _
     return TOKEN_IDENTIFIER;
 }
 
