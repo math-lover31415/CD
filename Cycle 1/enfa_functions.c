@@ -57,6 +57,14 @@ struct NFA* epsilon_removal(struct NFA* enfa){
     }
 
     for (int i=0;i<n;++i){
+        for (int j=0;j<n;++j){
+            if (!enfa->stateList[j].finalState) continue;
+            if (!closure_matrix[i][j]) continue;
+            outNFA->stateList[i].finalState = true;
+        }
+    }
+
+    for (int i=0;i<n;++i){
         free(closure_matrix[i]);
     }
     
