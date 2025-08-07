@@ -95,6 +95,11 @@ struct DFA* dfa_conversion(struct NFA* enfa){
         struct StateMappingNode* current = head;
         while (current){
             int s = current->dfa_value;
+            for (int i=0;i<n;++i){
+                if (nfa->stateList[i].finalState && ((current->nfa_value) & (1 << i))) {
+                    dfa->finalState[i] = true;
+                }
+            }
             for (int i=0;i<m;++i){
                 int t = stateMapping(head,current->transitions[i]);
                 dfa->transitionTable[s][i] = t;
