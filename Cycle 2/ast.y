@@ -100,7 +100,7 @@ struct AST *make_assign(const char *name, struct AST *r){
 void print_ast(struct AST *a, int indent){
     if (!a) return;
     for (int i=0;i<indent;++i){
-        printf(" ");
+        printf("-");
     }
     switch(a->kind){
         case AST_BINOP:
