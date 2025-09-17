@@ -39,6 +39,18 @@ bool str_contains(char str[],char c){
     return false;
 }
 
+
+void add_str(char str[], char c){
+    int n = strlen(str);
+    for (int i=0;i<n;++i){
+        if (str[i]==c){
+            return ;
+        }
+    }
+    str[n] = c;
+    str[n+1] = '\0';
+}
+
 bool validTerminal(struct Grammar* g, char c){
     int n = strlen(g->terminals);
     for (int i=0;i<n;++i){

@@ -61,4 +61,4 @@ dkms.conf
 input.txt
 
 #Record work for lab
-Record/
+build/
