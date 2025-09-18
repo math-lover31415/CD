@@ -31,12 +31,18 @@ void free_grammar(struct Grammar* g){
     free(g);
 }
 
-bool str_contains(char str[],char c){
-    int n = strlen(str);
+int find_index(char s[], char c){
+    int n = strlen(s);
     for (int i=0;i<n;++i){
-        if (str[i]==c) return true;
+        if (s[i]==c){
+            return i;
+        }
     }
-    return false;
+    return -1;
+}
+
+bool str_contains(char str[],char c){
+    return find_index(str,c)!=-1;
 }
 
 
@@ -52,19 +58,11 @@ void add_str(char str[], char c){
 }
 
 bool validTerminal(struct Grammar* g, char c){
-    int n = strlen(g->terminals);
-    for (int i=0;i<n;++i){
-        if (g->terminals[i]==c) return true;
-    }
-    return false;
+    return str_contains(g->terminals,c);
 }
 
 bool validNonTerminal(struct Grammar* g, char c){
-    int n = strlen(g->non_terminals);
-    for (int i=0;i<n;++i){
-        if (g->non_terminals[i]==c) return true;
-    }
-    return false;
+    return str_contains(g->non_terminals,c);
 }
 
 bool validInput(struct Grammar* g, char input[]){
@@ -79,6 +77,7 @@ bool validInput(struct Grammar* g, char input[]){
 
 bool validExpansion(struct Grammar* g, char input[]){
     int n = strlen(input);
+    if (n==1 && input[0]=='e') return true;
     for (int i=0;i<n;++i){
         if (!validTerminal(g,input[i]) && !validNonTerminal(g,input[i])){
             return true;
@@ -149,7 +148,13 @@ struct Grammar* read_grammar() {
         scanf("%s",rule);
         sscanf(rule,"%c->%s",&(g->rules[i].symbol),&g->rules[i].expression);
         if (!validNonTerminal(g,g->rules[i].symbol) || !validExpansion(g,g->rules[i].expression)){
-            printf("Production rule invalid\n");
+            printf("Production rule %s invalid\n",rule);
+            if (!validNonTerminal(g,g->rules[i].symbol)){
+                printf("Invalid symbol on LHS\n");
+            }
+            if (!validExpansion(g,g->rules[i].expression)){
+                printf("Invalid expression on RHS");
+            }
             free_grammar(g);
             return NULL;
         }

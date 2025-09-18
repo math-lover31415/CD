@@ -2,33 +2,21 @@
 
 int n,m;
 
-void find_first(struct Grammar* g, int first[n][m],int nonTerm, int term){
-    if (first[nonTerm][term]!=-1) return first[nonTerm][term];
-    first[nonTerm][term] = -2;
-    int res = 0;
-    int uncertain = 0;
-    for (int p=0;p<(g->production_num) && res<0;++p){
-        if (g->rules[p].symbol!=g->non_terminals[nonTerm]){
-            continue;
-        }
-        bool le = true;
-        int m = strlen(g->rules[p].expression);
-        for (int i=0;i<m && le && res==0;++i){
-            char c = g->rules[p].expression[i];
-            if (validTerminal(g,c)){
-                le = false;
-                if (c==g->terminals[term]){
-                    res = 1;
-                }
-            } else {
-                int nt;
-                for (nt=0;nt<n;++nt){
-                    if (g->)
-                }
-                find_first(g,)
-            }
+bool update(int** matrix, int i, int j, bool new){
+    if (!new || matrix[i][j]) return false;
+    matrix[i][j] = true;
+    return true;
+}
+
+int update_set(int* st1, int* st2, int size){
+    bool changed = false;
+    for (int i=0;i<size;++i){
+        if (!st1[i] && st2[i]){
+            st1[i] = true;
+            changed = true;
         }
     }
+    return changed;
 }
 
 void find_first_follow(struct Grammar* g){
@@ -36,41 +24,127 @@ void find_first_follow(struct Grammar* g){
     m = strlen(g->terminals);
     g->terminals[m] = 'e';
     g->terminals[m+1] = '\0';
-    int first[n][m+1], follow[n][m+1];
-    for (int i=0;i,n;++i){
-        for (int j=0;j<m;++j){
-            first[i][j] = -1;
-            follow[i][j] = -1;
+
+    int** first = malloc(sizeof(int*)*n);
+    int** follow = malloc(sizeof(int*)*n);
+    for (int i=0;i<n;++i){
+        first[i] = malloc(sizeof(int)*(m+1));
+        follow[i] = malloc(sizeof(int)*(m+1));
+        for (int j=0;j<=m;++j){
+            first[i][j] = 0;
+            follow[i][j] = 0;
         }
-        follow[i][m] = -1;
-    }
-    for(int i=0;i<n;++i){
         if (g->non_terminals[i]==g->startState){
             follow[i][m] = 1;
-        } else {
-            follow[i][m] = 0;
         }
     }
-    for (int j=0;j<m;++j){
-        for (int i=0;i<n;++i){
-            for (int k=0;k<(n*m);++k){
-                find_first(g,first,i,j);
-                find_follow(g,first,follow,i,j);
+
+    bool changed = true;
+    int production_num = g->production_num;
+    int max_iterations = 100;
+    while (changed && max_iterations-->0){
+        changed = false;
+        for (int p=0;p<production_num;++p){
+            char symbol = g->rules[p].symbol;
+            int symbol_index = find_index(g->non_terminals,symbol);
+            if (symbol_index==-1){
+                continue;
             }
-            if (find_first(g,first,follow,i,j)==-2){
-                first[i][j] = 0;
+            char* expression = g->rules[p].expression;
+            int k = strlen(expression);
+            if (k==1 && expression[0]=='e'){
+                changed = update(first,symbol_index,m,true);
+                continue;
             }
-            if (find_follow(g,first,follow,i,j)==-2){
-                follow[i][j] = 0;
+            bool nullable_i = true;
+            for (int i=0;i<k;++i){
+                int index = find_index(g->non_terminals,expression[i]);
+                if (nullable_i){
+                    int t_index = find_index(g->terminals,expression[i]);
+                    if (t_index!=-1 && !first[symbol_index][t_index]){
+                        first[symbol_index][t_index] = true;
+                        changed = true;
+                    }
+                    if (index!=-1){
+                        changed = changed || update_set(first[symbol_index],first[index], m+1);
+                    }
+                }
+                if (index==-1 || first[index][m]){
+                    nullable_i = false;
+                }
+                bool nullable_j = true;
+                for (int j=i+1;j<k;++j){
+                    int index_2 = find_index(g->non_terminals,expression[j]);
+                    if (nullable_j){
+                        int t_index = find_index(g->terminals,expression[j]);
+                        if (t_index!=-1 && !first[index][t_index]){
+                            follow[index][t_index] = true;
+                            changed = true;
+                        }
+                        if (index!=-1 && index_2!=-1){
+                            changed = changed || update_set(follow[index],follow[index_2], m+1);
+                        }
+                    }
+                    if (index_2==-1 || first[index_2][m]){
+                        nullable_j = false;
+                        break;
+                    }
+                }
+                if (nullable_j && index!=-1){
+                    changed = changed || update_set(follow[index],follow[symbol_index], m+1);
+                }
+            }
+            if (nullable_i){
+                first[symbol_index][m] = true;
             }
         }
-        find_follow(g,first,follow,i,m);
     }
+
+    for (int i=0;i<n;++i){
+        printf("First(%c) = {",g->non_terminals[i]);
+        bool flag = false;
+        for (int j=0;j<=m;++j){
+            if (!first[i][j]) continue;
+            if (flag){
+                printf(",");
+            }
+            flag = true;
+            char c = 'e';
+            if (j!=m){
+                c = g->terminals[j];
+            }
+            printf("%c",c);
+        }
+        printf("}\n");
+
+        printf("Follow(%c) = {",g->non_terminals[i]);
+        flag = false;
+        for (int j=0;j<=m;++j){
+            if (!follow[i][j]) continue;
+            if (flag){
+                printf(",");
+            }
+            flag = true;
+            char c = '$';
+            if (j!=m){
+                c = g->terminals[j];
+            }
+            printf("%c",c);
+        }
+        printf("}\n");
+    }
+
+    for (int i=0;i<n;++i){
+        free(first[i]);
+        free(follow[i]);
+    }
+    free(first);
+    free(follow);
 }
 
 int main(){
     struct Grammar* g = read_grammar();
-
+    find_first_follow(g);
     free(g);
     print_delete_lmd();
     return 0;
