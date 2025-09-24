@@ -1,4 +1,4 @@
-#include "stack.c"
+#include "shift_reduce_common.c"
 
 char ** read_precedence(struct Grammar* g){
     int n = strlen(g->terminals)+1;
@@ -27,52 +27,7 @@ char findAction(struct Grammar* g,char**table, struct StackNode** outputStack,st
     return table[l][r];
 }
 
-bool match(struct StackNode** indirect, char s[]){
-    int n = strlen(s);
-    struct StackNode* current = *indirect;
-    
-    for (int i=n-1;i>=0;--i){
-        if (!current){
-            return false;
-        }
-        char lhs = current->symbol;
-        char rhs = s[i];
-        if (lhs!=rhs){
-            return false;
-        }
 
-        current = current->next;
-    }
-    
-    // Don't remove matched nodes here, that happens in reduce()
-    
-    return true;
-}
-
-void reduce(struct StackNode** outputStack,struct Grammar* g){
-    int np = g->production_num;
-    for (int p=0;p<np;++p){
-        char* expression = g->rules[p].expression;
-        char symbol = g->rules[p].symbol;
-        if (match(outputStack,expression)){
-            int n = strlen(expression);
-            while (n-->0){
-                popStack(outputStack);
-            }
-            stackPush(outputStack,symbol,false);
-            push_derivation(g->rules[p]);
-        }
-    }
-}
-
-void derivation_parse(){
-    printf("String accepted. The RMD is as follows:\n");
-    while (!empty_derivation()){
-        struct ProductionRule r = top_derivation();
-        printf("%c->%s\n",r.symbol,r.expression);
-        pop_derivation();
-    }
-}
 
 void parse(struct Grammar* g, char** table,char input[20]){
     struct StackNode * inputHead = NULL;
@@ -85,7 +40,7 @@ void parse(struct Grammar* g, char** table,char input[20]){
         stackPush(inputStack,input[i],true);
     }
     char action = '=';
-    int max_iterations = 20;
+    int max_iterations = 1000;
     while (max_iterations-->0 && action!='A'){
         action = findAction(g,table,outputStack,inputStack);
         
@@ -109,16 +64,14 @@ void parse(struct Grammar* g, char** table,char input[20]){
                 if (emptyStack(inputStack) && !emptyStack(outputStack)
                 && !stackHead->next && stackTopValue(outputStack)==g->startState){
                     //Valid input
-                    derivation_parse();
+                    printf("String Accepted\n");
                 } else {
                     printf("String rejected\n");
                 }
                 break;
         }
     }
-    while (!empty_derivation()){
-        pop_derivation();
-    }
+    derivation_parse();
     freeStack(inputStack);
     freeStack(outputStack);
 }
