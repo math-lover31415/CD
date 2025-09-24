@@ -1,22 +1,110 @@
 #include "grammar.c"
 
 int n,m;
+bool changed;
 
-bool update(int** matrix, int i, int j, bool new){
-    if (!new || matrix[i][j]) return false;
+void update(int** matrix, int i, int j, bool new){
+    if (!new || matrix[i][j]) return;
     matrix[i][j] = true;
-    return true;
+    changed = true;
 }
 
-int update_set(int* st1, int* st2, int size){
-    bool changed = false;
+void update_set(int* st1, int* st2, int size){
     for (int i=0;i<size;++i){
         if (!st1[i] && st2[i]){
             st1[i] = true;
             changed = true;
         }
     }
-    return changed;
+}
+
+void find_first(struct Grammar* g, int** first){
+    changed = true;
+    int production_num = g->production_num;
+    while (changed){
+        changed = false;
+        for (int p=0;p<production_num;++p){
+            int X = find_index(g->non_terminals,g->rules[p].symbol);
+            char* expression = g->rules[p].expression;
+            if (X<0){
+                continue;
+            }
+            int k = strlen(expression);
+            if (k==1 && expression[0]=='e'){
+                update(first,X,m,true);
+                continue;
+            }
+            
+            bool nullable = true;
+            for (int i=0;i<k;++i){
+                int Y = find_index(g->non_terminals,expression[i]);
+                if (Y<0){
+                    // Terminal encountered
+                    int t = find_index(g->terminals,expression[i]);
+                    update(first,X,t,true);
+                    nullable = false;
+                    break;
+                }
+                
+                // Add all symbols from FIRST(Y) to FIRST(X) except epsilon
+                update_set(first[X], first[Y], m);
+                
+                // If Y doesn't have epsilon, stop
+                if (!first[Y][m]){
+                    nullable = false;
+                    break;
+                }
+            }
+            
+            if (nullable){
+                update(first,X,m,true);
+            }
+        }
+    }
+}
+
+void find_follow(struct Grammar* g, int** first,int** follow){
+    changed = true;
+    int production_num = g->production_num;
+    // Add $ to follow set of start symbol
+    int start_idx = find_index(g->non_terminals, g->startState);
+    if (start_idx >= 0) {
+        follow[start_idx][m] = true;
+    }
+    while (changed){
+        changed = false;
+        for (int p=0;p<production_num;++p){
+            int X = find_index(g->non_terminals,g->rules[p].symbol);
+            char* expression = g->rules[p].expression;
+            if (X<0){
+                continue;
+            }
+            int k = strlen(expression);
+            for (int i=0;i<k;++i){
+                int Y = find_index(g->non_terminals,expression[i]);
+                if (Y<0){
+                    continue;
+                }
+                bool nullable = true;
+                for (int j=i+1;j<k && nullable;++j){
+                    int Z = find_index(g->non_terminals,expression[j]);
+                    if (Z<0){
+                        int t = find_index(g->terminals,expression[j]);
+                        update(follow,Y,t,true);
+                        nullable = false;
+                        break;
+                    }
+                    if (!first[Z][m]){
+                        nullable = false;
+                    }
+                    update_set(follow[Y],first[Z],m);
+                }
+                if (nullable){
+                    update_set(follow[Y],follow[X],m+1); //Include m representing $
+                }
+            }
+        }
+    }
 }
 
 void find_first_follow(struct Grammar* g){
@@ -34,71 +122,10 @@ void find_first_follow(struct Grammar* g){
             first[i][j] = 0;
             follow[i][j] = 0;
         }
-        if (g->non_terminals[i]==g->startState){
-            follow[i][m] = 1;
-        }
     }
 
-    bool changed = true;
-    int production_num = g->production_num;
-    int max_iterations = 100;
-    while (changed && max_iterations-->0){
-        changed = false;
-        for (int p=0;p<production_num;++p){
-            char symbol = g->rules[p].symbol;
-            int symbol_index = find_index(g->non_terminals,symbol);
-            if (symbol_index==-1){
-                continue;
-            }
-            char* expression = g->rules[p].expression;
-            int k = strlen(expression);
-            if (k==1 && expression[0]=='e'){
-                changed = update(first,symbol_index,m,true);
-                continue;
-            }
-            bool nullable_i = true;
-            for (int i=0;i<k;++i){
-                int index = find_index(g->non_terminals,expression[i]);
-                if (nullable_i){
-                    int t_index = find_index(g->terminals,expression[i]);
-                    if (t_index!=-1 && !first[symbol_index][t_index]){
-                        first[symbol_index][t_index] = true;
-                        changed = true;
-                    }
-                    if (index!=-1){
-                        changed = changed || update_set(first[symbol_index],first[index], m+1);
-                    }
-                }
-                if (index==-1 || first[index][m]){
-                    nullable_i = false;
-                }
-                bool nullable_j = true;
-                for (int j=i+1;j<k;++j){
-                    int index_2 = find_index(g->non_terminals,expression[j]);
-                    if (nullable_j){
-                        int t_index = find_index(g->terminals,expression[j]);
-                        if (t_index!=-1 && !first[index][t_index]){
-                            follow[index][t_index] = true;
-                            changed = true;
-                        }
-                        if (index!=-1 && index_2!=-1){
-                            changed = changed || update_set(follow[index],follow[index_2], m+1);
-                        }
-                    }
-                    if (index_2==-1 || first[index_2][m]){
-                        nullable_j = false;
-                        break;
-                    }
-                }
-                if (nullable_j && index!=-1){
-                    changed = changed || update_set(follow[index],follow[symbol_index], m+1);
-                }
-            }
-            if (nullable_i){
-                first[symbol_index][m] = true;
-            }
-        }
-    }
+    find_first(g,first);
+    find_follow(g,first,follow);
 
     for (int i=0;i<n;++i){
         printf("First(%c) = {",g->non_terminals[i]);
