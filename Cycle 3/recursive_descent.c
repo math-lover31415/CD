@@ -21,13 +21,13 @@ int recursiveDescent(struct Grammar* g, char input[],int inputStart, char expand
             expanded[expandedStart] = '\0';
             strcat(expanded,g->rules[i].expression);
             strcat(expanded,expanded_copy+expandedStart+1);
-            push_lmd(g->rules[i]);
+            push_derivation(g->rules[i]);
 
             if (recursiveDescent(g,input,inputStart,expanded,expandedStart)) {
                 return true;
             }
 
-            pop_lmd();
+            pop_derivation();
             strcpy(expanded,expanded_copy);
         }
     }
@@ -51,5 +51,5 @@ int main(){
         printf("String rejected\n");
     }
     free(g);
-    print_delete_lmd();
+    print_delete_derivation();
 }

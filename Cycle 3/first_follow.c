@@ -173,6 +173,5 @@ int main(){
     struct Grammar* g = read_grammar();
     find_first_follow(g);
     free(g);
-    print_delete_lmd();
     return 0;
 }

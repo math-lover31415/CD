@@ -163,34 +163,34 @@ struct Grammar* read_grammar() {
     return g;
 }
 
-void push_lmd(struct ProductionRule r){
+void push_derivation(struct ProductionRule r){
     struct LMDStackNode* n = malloc(sizeof(struct LMDStackNode));
     n->next = head;
     n->rule = r;
     head = n;
 }
 
-bool empty_lmd(){
+bool empty_derivation(){
     if (head) return false;
     return true;
 }
 
-void pop_lmd(){
+void pop_derivation(){
     if (!head) return;
     struct LMDStackNode* n = head->next;
     free(head);
     head = n;
 }
 
-struct ProductionRule top_lmd(){
+struct ProductionRule top_derivation(){
     return head->rule;
 }
 
 
-void print_delete_lmd(){
-    if (empty_lmd()) return;
-    struct ProductionRule p = top_lmd();
-    pop_lmd();
-    print_delete_lmd();
+void print_delete_derivation(){
+    if (empty_derivation()) return;
+    struct ProductionRule p = top_derivation();
+    pop_derivation();
+    print_delete_derivation();
     printf("%c->%s\n",p.symbol,p.expression);
 }
