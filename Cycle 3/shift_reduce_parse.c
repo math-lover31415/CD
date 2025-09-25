@@ -1,7 +1,6 @@
 #include "shift_reduce_common.c"
 
 
-
 void parse(struct Grammar* g,char input[20]){
     struct StackNode * inputHead = NULL;
     struct StackNode * stackHead = NULL;
@@ -12,18 +11,15 @@ void parse(struct Grammar* g,char input[20]){
     for (int i=n-1;i>=0;--i){
         stackPush(inputStack,input[i],true);
     }
-    char action = '=';
     int max_iterations = 1000;
-    while (max_iterations-->0 && action!='A'){
+    while (max_iterations-->0){
         //Try reduce
         if (reduce(outputStack,g)){
             continue;
         }
 
         //Try shift
-        if (!emptyStack(inputStack)){
-            stackPush(outputStack,stackTopValue(inputStack),true);
-            popStack(inputStack);
+        if (shift(inputStack,outputStack)){
             continue;
         }
 
@@ -37,9 +33,7 @@ void parse(struct Grammar* g,char input[20]){
         }
         break;
     }
-    while (!empty_derivation()){
-        pop_derivation();
-    }
+    derivation_parse();
     freeStack(inputStack);
     freeStack(outputStack);
 }
@@ -50,6 +44,7 @@ int main(){
     char input[20];
     scanf("%19s",input);
     if (validInput(g,input)){
+        parse(g,input);
     } else {
         printf("Invalid input\n");
     }

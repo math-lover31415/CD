@@ -22,6 +22,15 @@ bool match(struct StackNode** indirect, char s[]){
     return true;
 }
 
+bool shift(struct StackNode** inputStack,struct StackNode** outputStack){
+    if (!emptyStack(inputStack)){
+        stackPush(outputStack,stackTopValue(inputStack),true);
+        popStack(inputStack);
+        return true;
+    }
+    return false;
+}
+
 bool reduce(struct StackNode** outputStack,struct Grammar* g){
     int np = g->production_num;
     bool res = false;

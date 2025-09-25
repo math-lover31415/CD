@@ -54,11 +54,14 @@ void parse(struct Grammar* g, char** table,char input[20]){
             case '>':
             case '=':
                 //Same for left associative grammar
-                reduce(outputStack,g);
+                if (!reduce(outputStack,g)){
+                    max_iterations = 0;
+                }
                 break;
             case '<':
-                stackPush(outputStack,stackTopValue(inputStack),true);
-                popStack(inputStack);
+                if (!shift(inputStack,outputStack)){
+                    max_iterations = 0;
+                }
                 break;
             case 'A': //Accept
                 if (emptyStack(inputStack) && !emptyStack(outputStack)
@@ -88,5 +91,6 @@ int main(){
         printf("Invalid input\n");
     }
     free_precedence(table,n);
+    free_grammar(g);
     return 0;
 }
