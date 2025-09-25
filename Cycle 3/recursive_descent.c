@@ -1,11 +1,8 @@
 #include "grammar.c"
 
 int recursiveDescent(struct Grammar* g, char input[],int inputStart, char expanded[], int expandedStart){
-    if (input[inputStart]=='\0'){
-        return expanded[expandedStart]=='\0';
-    }
     if (expanded[expandedStart]=='\0'){
-        return false;
+        return strcmp(input,expanded)==0;
     }
 
     if (input[inputStart]==expanded[expandedStart]){
@@ -19,7 +16,9 @@ int recursiveDescent(struct Grammar* g, char input[],int inputStart, char expand
             strcpy(expanded_copy,expanded);
 
             expanded[expandedStart] = '\0';
-            strcat(expanded,g->rules[i].expression);
+            if (g->rules[i].expression[0]!='e' || g->rules[i].expression[1]!='\0'){
+                strcat(expanded,g->rules[i].expression);
+            }
             strcat(expanded,expanded_copy+expandedStart+1);
             push_derivation(g->rules[i]);
 

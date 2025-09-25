@@ -1,11 +1,8 @@
-4 3 6
-T
-TQRS
-xyz
-T->Qx
-Q->RS
-R->y
-R->e
-S->z
-S->e
-xyxyz
+2 2 3
+E
+EZ
++i
+E->iZ
+Z->+iZ
+Z->e
+i+i+i
