@@ -26,12 +26,17 @@ bool shift(struct StackNode** inputStack,struct StackNode** outputStack){
     if (!emptyStack(inputStack)){
         stackPush(outputStack,stackTopValue(inputStack),true);
         popStack(inputStack);
+        printf("Action: Shift Input: ");
+        printState(inputStack);
+        printf(" Output: ");
+        printState(outputStack);
+        printf("\n");
         return true;
     }
     return false;
 }
 
-bool reduce(struct StackNode** outputStack,struct Grammar* g){
+bool reduce(struct StackNode** outputStack,struct StackNode** inputStack,struct Grammar* g){
     int np = g->production_num;
     bool res = false;
     for (int p=0;p<np;++p){
@@ -45,6 +50,11 @@ bool reduce(struct StackNode** outputStack,struct Grammar* g){
             stackPush(outputStack,symbol,false);
             push_derivation(g->rules[p]);
             res = true;
+            printf("Action: Reduce Input: ");
+            printState(inputStack);
+            printf(" Output: ");
+            printState(outputStack);
+            printf("\n");
         }
     }
     return res;

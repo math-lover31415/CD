@@ -14,7 +14,7 @@ void parse(struct Grammar* g,char input[20]){
     int max_iterations = 1000;
     while (max_iterations-->0){
         //Try reduce
-        if (reduce(outputStack,g)){
+        if (reduce(outputStack,inputStack,g)){
             continue;
         }
 

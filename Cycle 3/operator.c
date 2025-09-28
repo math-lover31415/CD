@@ -44,17 +44,12 @@ void parse(struct Grammar* g, char** table,char input[20]){
     while (max_iterations-->0 && action!='A'){
         action = findAction(g,table,outputStack,inputStack);
         
-        // printf("Action: %c Input: ",action);
-        // printState(inputStack);
-        // printf(" Output: ");
-        // printState(outputStack);
-        // printf("\n");
 
         switch(action){
             case '>':
             case '=':
                 //Same for left associative grammar
-                if (!reduce(outputStack,g)){
+                if (!reduce(outputStack,inputStack,g)){
                     max_iterations = 0;
                 }
                 break;
