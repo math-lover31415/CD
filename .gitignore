@@ -57,8 +57,5 @@ dkms.conf
 # debug information files
 *.dwo
 
-# input files
-input.txt
-
 #Record work for lab
 build/
